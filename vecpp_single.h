@@ -14,9 +14,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#if __cplusplus < 201703L
-#error "vecpp requires c++17"
-#endif
 #define VECPP_VERSION_MAJOR 0
 #define VECPP_VERSION_MINOR 0
 #define VECPP_VERSION_PATCH 1
