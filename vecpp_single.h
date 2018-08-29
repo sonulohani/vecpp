@@ -187,6 +187,24 @@ template <typename T>
 constexpr T Angle<T>::as_rad() const {
   return value_;
 }
+template <typename T>
+constexpr T sin(const Angle<T>& a) {
+  constexpr std::array<T, 5> taylor_factors = {
+    -6, 120, -5040, 362880, -39916800
+  };
+  T r = a.as_rad();
+  T r_2 = r*r;
+  T result = r;
+  for(auto f : taylor_factors) {
+    r *= r_2;
+    result += r / f;
+  }
+  return result;
+}
+template <typename T>
+constexpr T cos(const Angle<T>& a) {
+  return sin(a + Angle<T>::from_rad(half_pi<T>));
+}
 }
 
 namespace VECPP_NAMESPACE {
@@ -529,8 +547,8 @@ struct Quat {
 template <typename T>
 constexpr Quat<T> Quat<T>::angle_axis(const Angle<T>& angle,
                                       const Vec<T, 3>& axis) {
-  const T s = std::sin(angle.as_rad() * T(0.5));
-  const T c = std::cos(angle.as_rad() * T(0.5));
+  const T s = sin(angle * T(0.5));
+  const T c = cos(angle * T(0.5));
   return {c, axis[0] * s, axis[1] * s, axis[2] * s};
 }
 template <typename T>
