@@ -4,8 +4,8 @@
 //  Distributed under the Boost Software License, Version 1.0.
 //  (See accompanying file LICENSE or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
-#ifndef ABULAFIA_SINGLE_INCLUDE_H_
-#define ABULAFIA_SINGLE_INCLUDE_H_
+#ifndef VECPP_SINGLE_INCLUDE_H_
+#define VECPP_SINGLE_INCLUDE_H_
 #include <array>
 #include <cassert>
 #include <cmath>
@@ -14,6 +14,9 @@
 #include <stdexcept>
 #include <type_traits>
 
+#if __cplusplus < 201703L
+#error "vecpp requires c++17"
+#endif
 #define VECPP_VERSION_MAJOR 0
 #define VECPP_VERSION_MINOR 0
 #define VECPP_VERSION_PATCH 1
