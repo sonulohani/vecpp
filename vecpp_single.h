@@ -6,6 +6,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 #ifndef VECPP_SINGLE_INCLUDE_H_
 #define VECPP_SINGLE_INCLUDE_H_
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
@@ -23,19 +24,64 @@
 #endif
 
 namespace VECPP_NAMESPACE {
-template <typename T = float>
-constexpr T pi = T(3.1415926535897932385);
-template <typename T = float>
-constexpr T half_pi = pi<T> / T(2);
-template <typename T = float>
-constexpr T two_pi = pi<T>* T(2);
+  // Tyoe-dependant constants
+  template<typename T>
+  constexpr T identity = T::make_identity();
+  template<typename T>
+  constexpr T zero = T::make_zero();
+}
+
+namespace VECPP_NAMESPACE {
+  template <typename Scalar>
+  constexpr Scalar pi = Scalar(3.1415926535897932385);
+  template <typename Scalar>
+  constexpr Scalar half_pi = pi<Scalar> / Scalar(2);
+  template <typename Scalar>
+  constexpr Scalar two_pi = pi<Scalar> * Scalar(2);
+}
+
+namespace VECPP_NAMESPACE {
+  template<typename ScalarT>
+  constexpr ScalarT abs(const ScalarT& v) {
+    return v < ScalarT(0) ? -v : v;
+  }
+  template<typename ScalarT>
+  constexpr ScalarT ceil(const ScalarT& v) {
+    assert(false);
+  }
+  template<typename ScalarT>
+  constexpr ScalarT exp(const ScalarT& v) {
+    assert(false);
+  }
+  template<typename ScalarT>
+  constexpr ScalarT floor(const ScalarT& v) {
+    assert(false);
+  }
+  template<typename ScalarT>
+  constexpr ScalarT fmod(const ScalarT& v, const ScalarT& d) {
+    return v - floor(v / d) * div;
+  }
+  template<typename ScalarT>
+  constexpr ScalarT pow(const ScalarT& x, const ScalarT& n) {
+    assert(false);
+  }
+  template<typename T>
+  constexpr T sqrt(const T& v) {
+    if(v == T(0)) {
+      return v;
+    }
+    T r = v;
+    // A lazy newton-rhapson for now.
+    for(int i = 0 ; i < 100; ++i) {
+      r -= (r*r - v) / (r * T(2));
+    }
+    return r;
+  }
 }
 
 namespace VECPP_NAMESPACE {
 template <typename T>
 class Angle {
-  static_assert(std::is_floating_point<T>::value,
-                "Only Angles of floating point types are allowed");
  public:
   using value_type = T;
   static constexpr Angle from_rad(const value_type&);
@@ -46,6 +92,7 @@ class Angle {
   static constexpr Angle from_clamped_deg(const value_type&);
   constexpr value_type as_deg() const;
   constexpr value_type as_rad() const;
+  constexpr value_type raw() const;
  private:
   value_type value_;
   // Constructs an angle from a constrained radian value.
@@ -126,27 +173,27 @@ constexpr Angle<T> operator/(const Angle<T>& lhs, const T& rhs) {
 }
 template <typename T>
 constexpr bool operator==(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() == rhs.as_rad();
+  return lhs.raw() == rhs.raw();
 }
 template <typename T>
 constexpr bool operator!=(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() != rhs.as_rad();
+  return lhs.raw() != rhs.raw();
 }
 template <typename T>
 constexpr bool operator<(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() < rhs.as_rad();
+  return lhs.raw() < rhs.raw();
 }
 template <typename T>
 constexpr bool operator>(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() > rhs.as_rad();
+  return lhs.raw() > rhs.raw();
 }
 template <typename T>
 constexpr bool operator<=(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() <= rhs.as_rad();
+  return lhs.raw() <= rhs.raw();
 }
 template <typename T>
 constexpr bool operator>=(const Angle<T>& lhs, const Angle<T>& rhs) {
-  return lhs.as_rad() >= rhs.as_rad();
+  return lhs.raw() >= rhs.raw();
 }
 template <typename T>
 std::ostream& operator<<(std::ostream& stream, const Angle<T>& v) {
@@ -188,6 +235,13 @@ constexpr T Angle<T>::as_rad() const {
   return value_;
 }
 template <typename T>
+constexpr T Angle<T>::raw() const {
+  return value_;
+}
+}
+
+namespace VECPP_NAMESPACE {
+template <typename T>
 constexpr T sin(const Angle<T>& a) {
   constexpr std::array<T, 5> taylor_factors = {
     -6, 120, -5040, 362880, -39916800
@@ -204,6 +258,10 @@ constexpr T sin(const Angle<T>& a) {
 template <typename T>
 constexpr T cos(const Angle<T>& a) {
   return sin(a + Angle<T>::from_rad(half_pi<T>));
+}
+template <typename T>
+constexpr T tan(const Angle<T>& a) {
+  return sin(a) / cos(a);
 }
 }
 
@@ -378,70 +436,6 @@ constexpr Vec<T, L> operator/(const Vec<T, L>& lhs, const T& rhs) {
   result /= rhs;
   return result;
 }
-template <typename T, std::size_t L>
-constexpr Vec<T, L> min(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
-  Vec<T, L> result = {0};
-  for (std::size_t i = 0; i < L; ++i) {
-    result[i] = std::min(lhs[i], rhs[i]);
-  }
-  return result;
-}
-template <typename T, std::size_t L>
-constexpr Vec<T, L> max(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
-  Vec<T, L> result = {0};
-  for (std::size_t i = 0; i < L; ++i) {
-    result[i] = std::max(lhs[i], rhs[i]);
-  }
-  return result;
-}
-template <typename T, std::size_t L>
-constexpr Vec<T, L> abs(const Vec<T, L>& vec) {
-  Vec<T, L> result = {0};
-  for (std::size_t i = 0; i < L; ++i) {
-    result[i] = std::abs(vec[i]);
-  }
-  return result;
-}
-template <typename T>
-struct Dot_impl;
-template <typename T, std::size_t L>
-struct Dot_impl<Vec<T, L>> {
-  constexpr static T dot(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
-    T result = 0;
-    for (std::size_t i = 0; i < L; ++i) {
-      result += lhs[i] * rhs[i];
-    }
-    return result;
-  }
-};
-template <typename T>
-constexpr auto dot(const T& lhs, const T& rhs) {
-  return Dot_impl<T>::dot(lhs, rhs);
-}
-template <typename T>
-struct Length_impl;
-template <typename T, std::size_t L>
-struct Length_impl<Vec<T, L>> {
-  constexpr static T length(const Vec<T, L>& v) { return std::sqrt(dot(v, v)); }
-};
-template <typename T>
-constexpr auto length(const T& v) {
-  return Length_impl<T>::length(v);
-}
-template <typename T>
-struct Cross_impl;
-template <typename T>
-struct Cross_impl<Vec<T, 3>> {
-  static constexpr Vec<T, 3> cross(const Vec<T, 3>& lhs, const Vec<T, 3>& rhs) {
-    return {lhs[1] * rhs[2] - lhs[2] * rhs[1],
-            lhs[2] * rhs[0] - lhs[0] * rhs[2],
-            lhs[0] * rhs[1] - lhs[1] * rhs[0]};
-  }
-};
-template <typename T>
-constexpr auto cross(const T& lhs, const T& rhs) {
-  return Cross_impl<T>::cross(lhs, rhs);
-}
 }
 
 namespace VECPP_NAMESPACE {
@@ -491,13 +485,6 @@ constexpr Mat<T, C, R> Mat<T, C, R>::make_zero() {
 }
 
 namespace VECPP_NAMESPACE {
-  template<typename T>
-  constexpr T identity = T::make_identity();
-  template<typename T>
-  constexpr T zero = T::make_zero();
-}
-
-namespace VECPP_NAMESPACE {
 template <typename T>
 constexpr Mat<T, 4, 4> make_ortho(T l, T r, T b, T t) {
   Mat<T, 4, 4> result = Mat<T, 4, 4>::identity;
@@ -529,6 +516,17 @@ template <typename T, std::size_t A, std::size_t B, std::size_t C>
 constexpr Mat<T, A, C> operator*(const Mat<T, A, B>& lhs,
                                  const Mat<T, B, C>& rhs) {
   return Matmul_impl<T, A, B, C>::mul(lhs, rhs);
+}
+}
+
+namespace VECPP_NAMESPACE {
+template<typename T, std::size_t C, std::size_t R>
+constexpr T determinant(const Mat<T,C,R>& m) {
+  assert(false);
+}
+template<typename T, std::size_t C, std::size_t R>
+constexpr Mat<T,R,C> transpose(const Mat<T,C,R>& m) {
+  assert(false);
 }
 }
 
@@ -578,41 +576,52 @@ constexpr Vec<T, 3> operator*(const Quat<T>& lhs, const Vec<T, 3>& rhs) {
 
 namespace VECPP_NAMESPACE {
 template <typename T>
-struct Scale {
-  constexpr Scale(T const& s) : scale_({s, s, s}) {}
-  constexpr Scale(Vec<T, 3> const& s) : scale_(s) {}
-  Vec<T, 3> scale_;
-  explicit constexpr operator Mat<T, 4, 4>() {
-    Mat<T, 4, 4> result = Mat<T, 4, 4>::identity;
-    result[0][0] = scale_[0];
-    result[1][1] = scale_[1];
-    result[2][2] = scale_[2];
-    return result;
+constexpr Vec<T, 3> cross(const Vec<T, 3>& lhs, const Vec<T, 3>& rhs) {
+  return {lhs[1] * rhs[2] - lhs[2] * rhs[1], lhs[2] * rhs[0] - lhs[0] * rhs[2],
+          lhs[0] * rhs[1] - lhs[1] * rhs[0]};
+}
+template <typename T, std::size_t L>
+constexpr T dot(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
+  T result = 0;
+  for (std::size_t i = 0; i < L; ++i) {
+    result += lhs[i] * rhs[i];
   }
-  constexpr Mat<T, 4, 4> right_mul(const Mat<T, 4, 4>& m) const {
-    Mat<T, 4, 4> result = {};
-    result[0] = m[0] * scale_[0];
-    result[1] = m[1] * scale_[1];
-    result[2] = m[2] * scale_[2];
-    result[3] = m[3];
-    return result;
+  return result;
+}
+template <typename T, std::size_t L>
+constexpr T length(const Vec<T, L>& v) {
+  return sqrt(dot(v, v));
+}
+template <typename T, std::size_t L>
+constexpr Vec<T, 3> normalize(const Vec<T, 3>& v) {
+  return v / length(v);
+}
+}
+
+namespace VECPP_NAMESPACE {
+template <typename T, std::size_t L>
+constexpr Vec<T, L> abs(const Vec<T, L>& vec) {
+  Vec<T, L> result = {0};
+  for (std::size_t i = 0; i < L; ++i) {
+    result[i] = abs(vec[i]);
   }
-};
-template <typename T>
-constexpr Scale<T> scale(const T& s) {
-  return {s};
+  return result;
 }
-template <typename T>
-constexpr Scale<T> scale(const Vec<T, 3>& s) {
-  return {s};
+template <typename T, std::size_t L>
+constexpr Vec<T, L> max(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
+  Vec<T, L> result = {0};
+  for (std::size_t i = 0; i < L; ++i) {
+    result[i] = std::max(lhs[i], rhs[i]);
+  }
+  return result;
 }
-template <typename T>
-constexpr Mat<T, 4, 4> operator*(const Mat<T, 4, 4>& m, const Scale<T>& s) {
-  return s.right_mul(m);
-}
-template <typename T>
-constexpr Vec<T, 3> operator*(const Scale<T>& s, const Vec<T, 3>& v) {
-  return {v[0] * s.scale_[0], v[1] * s.scale_[1], v[2] * s.scale_[2]};
+template <typename T, std::size_t L>
+constexpr Vec<T, L> min(const Vec<T, L>& lhs, const Vec<T, L>& rhs) {
+  Vec<T, L> result = {0};
+  for (std::size_t i = 0; i < L; ++i) {
+    result[i] = std::min(lhs[i], rhs[i]);
+  }
+  return result;
 }
 }
 
