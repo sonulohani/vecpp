@@ -65,6 +65,18 @@ struct Mat {
   std::array<value_type, cols * rows> data_;
 };
 
+template <typename T, std::size_t C, std::size_t R, Flags fl, Flags fr>
+constexpr bool operator==(const Mat<T, C, R, fl>& lhs, const Mat<T, C, R, fr>& rhs) {
+  for(std::size_t i = 0 ; i < C; ++i) {
+    for(std::size_t j = 0 ; j < R; ++j) {
+      if(lhs(i, j) != rhs(i, j)) {
+        return false;
+      }
+    }
+  }  
+  return true;
+}
+
 template <typename T, std::size_t C, std::size_t R, Flags mf, Flags vf>
 constexpr Vec<T, R, vf> operator*(const Mat<T, C, R, mf>& mat,
                                   const Vec<T, C, vf>& vec) {
@@ -91,6 +103,18 @@ constexpr Vec<T, C, vf> operator*(const Vec<T, R, vf>& vec,
       v += mat(j,i) * vec[i];
     }
     result[j] = v;
+  }
+  return result;
+}
+
+template <typename T, std::size_t C, std::size_t R, Flags f>
+constexpr Mat<T, R, C, f> transpose(const Mat<T, C, R, f>& m) {
+  Mat<T, R, C, f> result = {};
+
+  for(std::size_t i = 0 ; i < R; ++i) {
+    for(std::size_t j = 0 ; j < C; ++j) {
+      result(i, j) = m(j, i);
+    }
   }
   return result;
 }

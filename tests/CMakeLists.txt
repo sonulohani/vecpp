@@ -4,7 +4,7 @@ add_library(catch_main catch_main.cpp)
 
 SET( TEST_LIST
   scalar
-  
+
   angle
 
 
@@ -14,6 +14,7 @@ SET( TEST_LIST
 
   mat/construction
   mat/mul
+  mat/operations
 
   quat
 
