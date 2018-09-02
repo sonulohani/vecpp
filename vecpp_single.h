@@ -68,6 +68,10 @@ T fract(const T& v) {
   return v - floor(v);
 }
 template <typename T>
+T round(const T& v) {
+  return std::round(v);
+}
+template <typename T>
 T sin(const T& v) {
   return std::sin(v);
 }
@@ -126,6 +130,10 @@ constexpr T floor(const T& v) {
   return T(x - 1);
 }
 template <typename T>
+constexpr T round(const T& v) {
+  return floor(v + T(0.5));
+}
+template <typename T>
 constexpr T fract(const T& v) {
   return v - floor(v);
 }
@@ -172,6 +180,14 @@ constexpr ScalarT floor(const ScalarT& v) {
     return non_cste::floor(v);
   } else {
     return cste::floor(v);
+  }
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT round(const ScalarT& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::round(v);
+  } else {
+    return cste::round(v);
   }
 }
 template <Flags f = 0, typename ScalarT>
@@ -663,7 +679,7 @@ template <typename T, std::size_t l, Flags f>
 constexpr Vec<T, l, f> round(const Vec<T, l, f>& v) {
   Vec<T, l, f> result = {0};
   for (std::size_t i = 0; i < v.size(); ++i) {
-    result[i] = round(v[i]);
+    result[i] = round<f>(v[i]);
   }
   return result;
 }
