@@ -3,16 +3,21 @@ include_directories(.)
 add_library(catch_main catch_main.cpp)
 
 SET( TEST_LIST
+  scalar
+  
   angle
-  documentation
+
 
   vec/algos
   vec/construction
   vec/operators
 
+  mat/construction
+  mat/mul
+
   quat
 
-  scalar
+  documentation
 )
 
 foreach(TEST_PATH ${TEST_LIST})
