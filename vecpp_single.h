@@ -88,8 +88,12 @@ T tan(const T& v) {
   return std::tan(v);
 }
 template <typename T>
-constexpr T fmod(const T& v, const T& d) {
-  return std::fmod(v, d);
+T mod(const T& v, const T& d) {
+  if constexpr (std::is_integral_v<T>) {
+    return v % d;
+  } else {
+    return std::fmod(v, d);
+  }
 }
 }  // namespace non_cste
 namespace cste {
@@ -159,8 +163,12 @@ constexpr T tan(const T& v) {
   return sin(v) / cos(v);
 }
 template <typename T>
-constexpr T fmod(const T& v, const T& d) {
-  return v - floor(v / d) * d;
+constexpr T mod(const T& v, const T& d) {
+  if constexpr (std::is_integral_v<T>) {
+    return v % d;
+  } else {
+    return v - floor(v / d) * d;
+  }
 }
 }  // namespace cste
 template <Flags f = 0, typename ScalarT>
@@ -212,8 +220,12 @@ constexpr ScalarT trunc(const ScalarT& v) {
   }
 }
 template <Flags f = 0, typename ScalarT>
-constexpr ScalarT fmod(const ScalarT& v, const ScalarT& d) {
-  return v - floor<f>(v / d) * d;
+constexpr ScalarT mod(const ScalarT& v, const ScalarT& d) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::mod(v, d);
+  } else {
+    return cste::mod(v, d);
+  }
 }
 template <Flags f = 0, typename ScalarT>
 constexpr ScalarT fract(const ScalarT& v) {
@@ -388,7 +400,7 @@ constexpr Angle<T, f> Angle<T, f>::from_clamped_deg(const T& v) {
 }
 template <typename T, Flags f>
 constexpr Angle<T, f> Angle<T, f>::from_rad(const T& v) {
-  T constrained = cste::fmod(v + pi<T>, two_pi<T>);
+  T constrained = cste::mod(v + pi<T>, two_pi<T>);
   if (constrained <= T(0)) {
     constrained += two_pi<T>;
   }
@@ -740,7 +752,7 @@ template <typename T, std::size_t l, Flags f>
 constexpr Vec<T, l, f> mod(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   Vec<T, l, f> result = {0};
   for (std::size_t i = 0; i < lhs.size(); ++i) {
-    result[i] = mod(lhs[i], rhs[i]);
+    result[i] = mod<f>(lhs[i], rhs[i]);
   }
   return result;
 }
