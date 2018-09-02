@@ -72,6 +72,10 @@ T round(const T& v) {
   return std::round(v);
 }
 template <typename T>
+T trunc(const T& v) {
+  return std::trunc(v);
+}
+template <typename T>
 T sin(const T& v) {
   return std::sin(v);
 }
@@ -134,6 +138,11 @@ constexpr T round(const T& v) {
   return floor(v + T(0.5));
 }
 template <typename T>
+constexpr T trunc(const T& v) {
+  long long int x = static_cast<long long int>(v);
+  return T(x);
+}
+template <typename T>
 constexpr T fract(const T& v) {
   return v - floor(v);
 }
@@ -188,6 +197,18 @@ constexpr ScalarT round(const ScalarT& v) {
     return non_cste::round(v);
   } else {
     return cste::round(v);
+  }
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT sign(const ScalarT& v) {
+  return v >= 0.0f ? 1.0f : -1.0f;
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT trunc(const ScalarT& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::trunc(v);
+  } else {
+    return cste::trunc(v);
   }
 }
 template <Flags f = 0, typename ScalarT>
@@ -687,15 +708,15 @@ template <typename T, std::size_t l, Flags f>
 constexpr Vec<T, l, f> sign(const Vec<T, l, f>& v) {
   Vec<T, l, f> result = {0};
   for (std::size_t i = 0; i < v.size(); ++i) {
-    result[i] = sign(v[i]);
+    result[i] = sign<f>(v[i]);
   }
   return result;
 }
 template <typename T, std::size_t l, Flags f>
-constexpr Vec<T, l, f> truc(const Vec<T, l, f>& v) {
+constexpr Vec<T, l, f> trunc(const Vec<T, l, f>& v) {
   Vec<T, l, f> result = {0};
   for (std::size_t i = 0; i < v.size(); ++i) {
-    result[i] = trunc(v[i]);
+    result[i] = trunc<f>(v[i]);
   }
   return result;
 }
