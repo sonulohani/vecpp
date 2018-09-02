@@ -24,171 +24,172 @@
 #endif
 
 namespace VECPP_NAMESPACE {
-  using Flags = int;
-  namespace flags {
-    // Force usage of slower, but constexpr-friendly compile-time algorithms.
-    constexpr int compile_time = 1;
-    // Has no impact whatsoever, only used in testing
-    constexpr int testing = 0x80000000;
-  }
-  constexpr bool is_ct(Flags f) {
-    return f && flags::compile_time != 0;
-  }
-}
+using Flags = int;
+namespace flags {
+constexpr int compile_time = 1;
+constexpr int testing = 0x80000000;
+}  // namespace flags
+constexpr bool is_ct(Flags f) { return f && flags::compile_time != 0; }
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
-  template <typename Scalar>
-  constexpr Scalar pi = Scalar(3.1415926535897932385);
-  template <typename Scalar>
-  constexpr Scalar half_pi = pi<Scalar> / Scalar(2);
-  template <typename Scalar>
-  constexpr Scalar two_pi = pi<Scalar> * Scalar(2);
-}
+template <typename Scalar>
+constexpr Scalar pi = Scalar(3.1415926535897932385);
+template <typename Scalar>
+constexpr Scalar half_pi = pi<Scalar> / Scalar(2);
+template <typename Scalar>
+constexpr Scalar two_pi = pi<Scalar>* Scalar(2);
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
-  namespace non_cste {
-    // Some STL vendors have made some functions constexpr that are not required
-    // so by the standard.
-    template<typename T>
-    T sqrt(const T& v) {
-      return std::sqrt(v);
-    }
-    template<typename T>
-    T pow(const T& x, const T& n) {
-      return std::pow(x, n);
-    }
-    template<typename T>
-    T exp(const T& v) {
-      return std::exp(v);
-    }
-    template<typename T>
-    T ceil(const T& v) {
-      return std::ceil(v);
-    }
-    template<typename T>
-    T floor(const T& v) {
-      return std::floor(v);
-    }
-    template<typename T>
-    T sin(const T& v) {
-      return std::sin(v);
-    }
-    template<typename T>
-    T cos(const T& v) {
-      return std::cos(v);
-    }
-    template<typename T>
-    T tan(const T& v) {
-      return std::tan(v);
-    }
-    template<typename T>
-    constexpr T fmod(const T& v, const T& d) {
-      return std::fmod(v, d);
-    }
+namespace non_cste {
+template <typename T>
+T sqrt(const T& v) {
+  return std::sqrt(v);
+}
+template <typename T>
+T pow(const T& x, const T& n) {
+  return std::pow(x, n);
+}
+template <typename T>
+T exp(const T& v) {
+  return std::exp(v);
+}
+template <typename T>
+T ceil(const T& v) {
+  return std::ceil(v);
+}
+template <typename T>
+T floor(const T& v) {
+  return std::floor(v);
+}
+template <typename T>
+T sin(const T& v) {
+  return std::sin(v);
+}
+template <typename T>
+T cos(const T& v) {
+  return std::cos(v);
+}
+template <typename T>
+T tan(const T& v) {
+  return std::tan(v);
+}
+template <typename T>
+constexpr T fmod(const T& v, const T& d) {
+  return std::fmod(v, d);
+}
+}  // namespace non_cste
+namespace cste {
+template <typename T>
+constexpr T sqrt(const T& v) {
+  if (v == T(0)) {
+    return v;
   }
-  namespace cste {
-    template<typename T>
-    constexpr T sqrt(const T& v) {
-      if(v == T(0)) {
-        return v;
-      }
-      T r = v;
-      // A lazy newton-rhapson for now.
-      while(1) {
-        T tmp = T(0.5) * (r + v / r);
-        if(tmp == r) {
-          break;
-        }
-        r = tmp;
-      }
-      return r;
+  T r = v;
+  // A lazy newton-rhapson for now.
+  while (1) {
+    T tmp = T(0.5) * (r + v / r);
+    if (tmp == r) {
+      break;
     }
-    template<typename T>
-    constexpr T pow(const T& x, const T& n) {
-      assert(false);
-    }
-    template<typename T>
-    constexpr T exp(const T& v) {
-      assert(false);
-    }
-    template<typename T>
-    constexpr T ceil(const T& v) {
-      assert(false);
-    }
-    template<typename T>
-    constexpr T floor(const T& v) {
-      return static_cast<T>(static_cast<long long>(v));
-    }
-    template<typename T>
-    constexpr T sin(const T& v) {
-      assert(false);
-    }
-    template<typename T>
-    constexpr T cos(const T& v) {
-      assert(false);
-    }
-    template<typename T>
-    constexpr T tan(const T& v) {
-      return sin(v) / cos(v);
-    }
-    template<typename T>
-    constexpr T fmod(const T& v, const T& d) {
-      return v - floor(v / d) * d;
-    }
+    r = tmp;
   }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT abs(const ScalarT& v) {
-    return v < ScalarT(0) ? -v : v;
+  return r;
+}
+template <typename T>
+constexpr T pow(const T& x, const T& n) {
+  assert(false);
+}
+template <typename T>
+constexpr T exp(const T& v) {
+  assert(false);
+}
+template <typename T>
+constexpr T ceil(const T& v) {
+  long long int x = static_cast<long long int>(v);
+  if (v == T(x) || v < T(0)) {
+    return T(x);
   }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT ceil(const ScalarT& v) {
-    assert(false);
+  return T(x + 1);
+}
+template <typename T>
+constexpr T floor(const T& v) {
+  long long int x = static_cast<long long int>(v);
+  if (v == T(x) || v > T(0)) {
+    return T(x);
   }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT exp(const ScalarT& v) {
-    if constexpr(!is_ct(f)) {
-      return non_cste::exp(v);
-    }
-    else {
-      // TODO: find a better algorithm please!
-      return cste::exp(v);
-    }
-  }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT floor(const ScalarT& v) {
-    if constexpr(!is_ct(f)) {
-      return non_cste::floor(v);
-    }
-    else {
-      return cste::floor(v);
-    }
-  }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT fmod(const ScalarT& v, const ScalarT& d) {
-    return v - floor<f>(v / d) * d;
-  }
-  template<Flags f = 0, typename ScalarT>
-  constexpr ScalarT pow(const ScalarT& x, const ScalarT& n) {
-    if constexpr(!is_ct(f)) {
-      return non_cste::pow(x, n);
-    }
-    else {
-      return cste::pow(x, n);
-    }
-  }
-  template<Flags f = 0, typename T>
-  constexpr T sqrt(const T& v) {
-    if constexpr(!is_ct(f)) {
-      return non_cste::sqrt(v);
-    }
-    else {
-      return cste::sqrt(v);
-    }
+  return T(x - 1);
+}
+template <typename T>
+constexpr T sin(const T& v) {
+  assert(false);
+}
+template <typename T>
+constexpr T cos(const T& v) {
+  assert(false);
+}
+template <typename T>
+constexpr T tan(const T& v) {
+  return sin(v) / cos(v);
+}
+template <typename T>
+constexpr T fmod(const T& v, const T& d) {
+  return v - floor(v / d) * d;
+}
+}  // namespace cste
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT abs(const ScalarT& v) {
+  return v < ScalarT(0) ? -v : v;
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT ceil(const ScalarT& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::ceil(v);
+  } else {
+    return cste::ceil(v);
   }
 }
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT exp(const ScalarT& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::exp(v);
+  } else {
+    return cste::exp(v);
+  }
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT floor(const ScalarT& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::floor(v);
+  } else {
+    return cste::floor(v);
+  }
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT fmod(const ScalarT& v, const ScalarT& d) {
+  return v - floor<f>(v / d) * d;
+}
+template <Flags f = 0, typename ScalarT>
+constexpr ScalarT pow(const ScalarT& x, const ScalarT& n) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::pow(x, n);
+  } else {
+    return cste::pow(x, n);
+  }
+}
+template <Flags f = 0, typename T>
+constexpr T sqrt(const T& v) {
+  if constexpr (!is_ct(f)) {
+    return non_cste::sqrt(v);
+  } else {
+    return cste::sqrt(v);
+  }
+}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
-template <typename T, Flags f=0>
+template <typename T, Flags f = 0>
 class Angle {
  public:
   using value_type = T;
@@ -210,7 +211,7 @@ class Angle {
   explicit constexpr Angle(const T&);
 };
 template <typename T, Flags f>
-constexpr Angle<T, f | flags::compile_time> ct(const Angle<T,f>& v) {
+constexpr Angle<T, f | flags::compile_time> ct(const Angle<T, f>& v) {
   return v;
 }
 template <typename T, Flags f>
@@ -241,7 +242,8 @@ constexpr Angle<T, f>& operator+=(Angle<T, f>& lhs, const Angle<T, f>& rhs) {
   return lhs;
 }
 template <typename T, Flags f>
-constexpr Angle<T, f> operator+(const Angle<T, f>& lhs, const Angle<T, f>& rhs) {
+constexpr Angle<T, f> operator+(const Angle<T, f>& lhs,
+                                const Angle<T, f>& rhs) {
   auto result = lhs;
   result += rhs;
   return result;
@@ -260,7 +262,8 @@ constexpr Angle<T, f>& operator-=(Angle<T, f>& lhs, const Angle<T, f>& rhs) {
   return lhs;
 }
 template <typename T, Flags f>
-constexpr Angle<T, f> operator-(const Angle<T, f>& lhs, const Angle<T, f>& rhs) {
+constexpr Angle<T, f> operator-(const Angle<T, f>& lhs,
+                                const Angle<T, f>& rhs) {
   auto result = lhs;
   result -= rhs;
   return result;
@@ -355,50 +358,46 @@ template <typename T, Flags f>
 constexpr T Angle<T, f>::raw() const {
   return value_;
 }
-}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
 template <typename T, Flags f>
 constexpr T sin(const Angle<T, f>& a) {
-  if constexpr(is_ct(f)) {
-    constexpr std::array<T, 5> taylor_factors = {
-      -6, 120, -5040, 362880, -39916800
-    };
+  if constexpr (is_ct(f)) {
+    constexpr std::array<T, 5> taylor_factors = {-6, 120, -5040, 362880,
+                                                 -39916800};
     T r = a.as_rad();
-    T r_2 = r*r;
+    T r_2 = r * r;
     T result = r;
-    for(auto factor : taylor_factors) {
+    for (auto factor : taylor_factors) {
       r *= r_2;
       result += r / factor;
     }
     return result;
-  }
-  else {
+  } else {
     return non_cste::sin(a.as_rad());
   }
 }
 template <typename T, Flags f>
 constexpr T cos(const Angle<T, f>& a) {
-  if constexpr(is_ct(f)) {
+  if constexpr (is_ct(f)) {
     return sin(a + Angle<T, f>::from_rad(half_pi<T>));
-  }
-  else {
+  } else {
     return non_cste::cos(a.as_rad());
   }
 }
 template <typename T, Flags f>
 constexpr T tan(const Angle<T, f>& a) {
-  if constexpr(is_ct(f)) {
+  if constexpr (is_ct(f)) {
     return sin(a) / cos(a);
-  }
-  else {
+  } else {
     return non_cste::tan(a.as_rad());
   }
 }
-}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
-template <typename T, std::size_t len, Flags f=0>
+template <typename T, std::size_t len, Flags f = 0>
 struct Vec {
  public:
   using value_type = T;
@@ -432,13 +431,13 @@ struct Vec {
   template <int new_flags>
   constexpr operator Vec<T, len, new_flags>() const {
     Vec<T, len, new_flags> result = {};
-    for(std::size_t i = 0 ; i < size(); ++i) {
+    for (std::size_t i = 0; i < size(); ++i) {
       result[i] = data_[i];
     }
     return result;
   }
 };
-template <typename T, std::size_t l,Flags f>
+template <typename T, std::size_t l, Flags f>
 constexpr Vec<T, l, f | flags::compile_time> ct(const Vec<T, l, f>& v) {
   return v;
 }
@@ -462,11 +461,10 @@ template <typename T, std::size_t l, Flags f>
 std::ostream& operator<<(std::ostream& stream, const Vec<T, l, f>& vec) {
   stream << "(";
   bool first = true;
-  for(const auto& v : vec) {
-    if(!first) {
+  for (const auto& v : vec) {
+    if (!first) {
       stream << ", ";
-    }
-    else {
+    } else {
       first = false;
     }
     stream << v;
@@ -508,7 +506,8 @@ constexpr Vec<T, l, f>& operator+=(Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   return lhs;
 }
 template <typename T, std::size_t l, Flags f>
-constexpr Vec<T, l, f> operator+(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+constexpr Vec<T, l, f> operator+(const Vec<T, l, f>& lhs,
+                                 const Vec<T, l, f>& rhs) {
   Vec<T, l, f> result = lhs;
   result += rhs;
   return result;
@@ -521,7 +520,8 @@ constexpr Vec<T, l, f>& operator-=(Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   return lhs;
 }
 template <typename T, std::size_t l, Flags f>
-constexpr Vec<T, l, f> operator-(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+constexpr Vec<T, l, f> operator-(const Vec<T, l, f>& lhs,
+                                 const Vec<T, l, f>& rhs) {
   Vec<T, l, f> result = lhs;
   result -= rhs;
   return result;
@@ -534,7 +534,8 @@ constexpr Vec<T, l, f>& operator*=(Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   return lhs;
 }
 template <typename T, std::size_t l, Flags f>
-constexpr Vec<T, l, f> operator*(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+constexpr Vec<T, l, f> operator*(const Vec<T, l, f>& lhs,
+                                 const Vec<T, l, f>& rhs) {
   Vec<T, l, f> result = lhs;
   result *= rhs;
   return result;
@@ -547,7 +548,8 @@ constexpr Vec<T, l, f>& operator/=(Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   return lhs;
 }
 template <typename T, std::size_t l, Flags f>
-constexpr Vec<T, l, f> operator/(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+constexpr Vec<T, l, f> operator/(const Vec<T, l, f>& lhs,
+                                 const Vec<T, l, f>& rhs) {
   Vec<T, l, f> result = lhs;
   result /= rhs;
   return result;
@@ -582,14 +584,13 @@ constexpr Vec<T, l, f> operator/(const Vec<T, l, f>& lhs, const T& rhs) {
   result /= rhs;
   return result;
 }
-}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
 template <typename T, Flags f>
 constexpr Vec<T, 3, f> cross(const Vec<T, 3, f>& lhs, const Vec<T, 3, f>& rhs) {
-  return { lhs[1] * rhs[2] - lhs[2] * rhs[1],
-           lhs[2] * rhs[0] - lhs[0] * rhs[2],
-           lhs[0] * rhs[1] - lhs[1] * rhs[0]};
+  return {lhs[1] * rhs[2] - lhs[2] * rhs[1], lhs[2] * rhs[0] - lhs[0] * rhs[2],
+          lhs[0] * rhs[1] - lhs[1] * rhs[0]};
 }
 template <typename T, std::size_t l, Flags f>
 constexpr T dot(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
@@ -607,7 +608,7 @@ template <typename T, std::size_t l, Flags f>
 constexpr Vec<T, l, f> normalize(const Vec<T, l, f>& v) {
   return v / length(v);
 }
-}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
 template <typename T, std::size_t l, Flags f>
@@ -615,6 +616,54 @@ constexpr Vec<T, l, f> abs(const Vec<T, l, f>& vec) {
   Vec<T, l, f> result = {0};
   for (std::size_t i = 0; i < vec.size(); ++i) {
     result[i] = abs<f>(vec[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> ceil(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = ceil<f>(v[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> floor(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = floor<f>(v[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> fract(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = fract(v[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> round(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = round(v[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> sign(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = sign(v[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> truc(const Vec<T, l, f>& v) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = trunc(v[i]);
   }
   return result;
 }
@@ -634,7 +683,37 @@ constexpr Vec<T, l, f> min(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
   }
   return result;
 }
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> mod(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < lhs.size(); ++i) {
+    result[i] = mod(lhs[i], rhs[i]);
+  }
+  return result;
 }
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> step(const Vec<T, l, f>& lhs, const Vec<T, l, f>& rhs) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < lhs.size(); ++i) {
+    result[i] = step(lhs[i], rhs[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> clamp(const Vec<T, l, f>& v, const Vec<T, l, f>& min,
+                             const Vec<T, l, f>& max) {
+  Vec<T, l, f> result = {0};
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    result[i] = clamp(v[i], min[i], max[i]);
+  }
+  return result;
+}
+template <typename T, std::size_t l, Flags f>
+constexpr Vec<T, l, f> lerp(const Vec<T, l, f>& from, const Vec<T, l, f>& to,
+                            const T& pct) {
+  return from + (to - from) * pct;
+}
+}  // namespace VECPP_NAMESPACE
 
 namespace VECPP_NAMESPACE {
 template <typename T>
@@ -680,7 +759,7 @@ constexpr Vec<T, 3> operator*(const Quat<T>& lhs, const Vec<T, 3>& rhs) {
   const Vec<T, 3> uuv = cross(q_v, uv);
   return rhs + ((uv * lhs.w) + uuv) * T(2);
 }
-}
+}  // namespace VECPP_NAMESPACE
 
 
 #endif
